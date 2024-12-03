@@ -2,27 +2,59 @@
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMicrophone, faClipboard } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type SpeechRecognition =
   | (typeof window)["SpeechRecognition"]
   | (typeof window)["webkitSpeechRecognition"];
 
-const Prompt = () => {
+const Prompt =  () => {
   const [prompt, setPrompt] = useState<string>("");
   const [response, setResponse] = useState<string>("");
   const [isRecording, setIsRecording] = useState(false); // State to track recording status
+  const recognitionRef = useRef<SpeechRecognition | null>(null); // Keep the recognition object stable
+  const [loading, setLoading] = useState<boolean>(false);
 
-  let recognition: SpeechRecognition | null = null;
+  const handleGenerate = async (prompt: String) => {
+    try {
+      setLoading(true);
 
-  if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
-    recognition = new (window as any).webkitSpeechRecognition(); // Initialize speech recognition
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-US"; // Set language for recognition
-  }
+      // Fetch AI model capabilities
+      const { available, defaultTemperature, defaultTopK, maxTopK } =
+        await (window as any).ai.languageModel.capabilities();
+
+      if (available !== "no") {
+        // Create a session and prompt the model
+        const session = await (window as any).ai.languageModel.create();
+        const result = await session.prompt(prompt);
+        console.log(result)
+        setResponse(result); // Update the response with the generated result
+      } else {
+        console.log("Language model is not available.")
+        setResponse("Language model is not available.");
+      }
+    } catch (error) {
+      console.error("Error with AI generation:", error);
+      setResponse("An error occurred while generating the response.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Ensure the speech recognition is only initialized on the client
+    if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
+      recognitionRef.current = new (window as any).webkitSpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = "en-US"; // Set language for recognition
+    } else {
+      console.warn("Speech recognition is not supported in this browser.");
+    }
+  }, []); // Only run once after the component is mounted
 
   const handleMicClick = () => {
+    const recognition = recognitionRef.current;
     if (!recognition) {
       alert("Speech recognition is not supported in this browser.");
       return;
@@ -56,20 +88,21 @@ const Prompt = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
-      setResponse(data.result);
-    } catch (error) {
-      console.error("Error generating response:", error);
-      setResponse("An error occurred. Please try again.");
-    }
+    //handleGenerate();
+    // try {
+    //   const res = await fetch("/api/generate", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({ prompt }),
+    //   });
+    //   const data = await res.json();
+    //   setResponse(data.result);
+    // } catch (error) {
+    //   console.error("Error generating response:", error);
+    //   setResponse("An error occurred. Please try again.");
+    // }
   };
 
   return (
@@ -98,7 +131,6 @@ const Prompt = () => {
       >
         {/* Prompt Input Section */}
         <form
-          onSubmit={handleSubmit}
           style={{
             flex: 1,
             display: "flex",
@@ -127,6 +159,7 @@ const Prompt = () => {
             }}
           />
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+            <div style={{width: "20px", height: "20px"}}>
             <FontAwesomeIcon
               icon={faMicrophone}
               onClick={handleMicClick}
@@ -137,8 +170,11 @@ const Prompt = () => {
               }}
               title={isRecording ? "Stop Recording" : "Start Recording"}
             />
+            </div>
+            
             <button
-              type="submit"
+              disabled={loading}
+              onClick={() => handleGenerate(prompt)} 
               style={{
                 padding: "0.75rem 1.5rem",
                 fontSize: "1rem",
@@ -156,7 +192,7 @@ const Prompt = () => {
                 (e.currentTarget.style.backgroundColor = "#0070f3")
               }
             >
-              Generate
+            {loading ? "Generating..." : "Generate Response"} 
             </button>
           </div>
         </form>
@@ -175,6 +211,7 @@ const Prompt = () => {
         >
           <h2 style={{ marginBottom: "0.5rem" }}>Generated Output:</h2>
           <p style={{ margin: "0", whiteSpace: "pre-wrap" }}>{response}</p>
+          <div style={{width: "20px", height: "20px"}}>
           <FontAwesomeIcon
             icon={faClipboard}
             onClick={() => {
@@ -185,12 +222,12 @@ const Prompt = () => {
               cursor: "pointer",
               fontSize: "1.2rem",
               color: "#0070f3",
-              position: "absolute",
-              top: "10px",
-              right: "10px",
             }}
             title="Copy to Clipboard"
           />
+
+          </div>
+          
         </div>
       </div>
     </div>

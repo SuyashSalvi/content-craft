@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import Providers from "./providers";
 import Navbar from "@/components/Navbar/Navbar";
 
+
 export const metadata: Metadata = {
   title: "UBA",
   description: "User behaviou Analysis",
