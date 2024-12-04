@@ -13,4 +13,5 @@ type NavLink = {
     // { href: '/projects', label: 'projects' },
     // { href: '/admin', label: 'admin' },
     { href: '/profile ', label: 'profile' },
+    { href: '/write ', label: 'write' },
   ];
