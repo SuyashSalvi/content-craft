@@ -1,7 +1,3 @@
-Here’s a detailed README file for your **ContentCraft** project:
-
----
-
 # **ContentCraft: AI-Powered Content Creation Platform**
 
 ## **Introduction**
@@ -55,7 +51,7 @@ ContentCraft is an AI-powered platform that revolutionizes content creation by l
 ### **Steps**
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/contentcraft.git
+   git clone https://github.com/SuyashSalvi/contentcraft.git
    ```
 2. Navigate to the project folder:
    ```bash
@@ -172,16 +168,11 @@ We welcome contributions to make ContentCraft even better! Follow these steps to
 
 ---
 
-## **License**
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
 ## **Acknowledgments**
+- Created by Ruchika and Suyash.
 - **TensorFlow.js:** For image feature extraction using MobileNet.
 - **OpenAI Language Models:** For advanced AI-driven content generation.
 - **Tailwind CSS:** For rapid and responsive UI design.
-- [Add other libraries, frameworks, or inspirations used in the project.]
 
 ---
 
