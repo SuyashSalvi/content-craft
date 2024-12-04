@@ -121,6 +121,7 @@ contentcraft/
 
 ## **Demo**
 [Live Demo](https://drive.google.com/file/d/1CiBN7S3Bu2ovHhsjViJ2oFuIWwxFFzGC/view)
+[Live Project]([https://drive.google.com/file/d/1CiBN7S3Bu2ovHhsjViJ2oFuIWwxFFzGC/view](https://content-craft-one.vercel.app/))
 
 ---
 
