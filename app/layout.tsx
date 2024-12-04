@@ -9,11 +9,13 @@ import {
 import type { Metadata } from "next";
 import Providers from "./providers";
 import Navbar from "@/components/Navbar/Navbar";
+import Footer from "@/components/Footer/Footer";
+
 
 
 export const metadata: Metadata = {
-  title: "UBA",
-  description: "User behaviou Analysis",
+  title: "ContentCraft",
+  description: "Your ultimate companion for effortless content creation.",
 };
 
 export default function RootLayout({
@@ -24,7 +26,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body>
+        <body className="bg-background text-foreground">
           <Providers>
             <Navbar />
           {/* <SignedOut>
@@ -34,6 +36,7 @@ export default function RootLayout({
               <UserButton />
             </SignedIn> */}
             <main>{children}</main>
+            <Footer />
           </Providers>
         </body>
       </html>

@@ -4,7 +4,10 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div>
-      <div className="relative h-screen bg-gradient-to-r from-[var(--background-start)] to-[var(--background-end)]">
+      {/* <div className="relative h-screen bg-gradient-to-r from-[var(--background-start)] to-[var(--background-end)]"> */}
+      <div className="relative h-screen overflow-hidden">
+      {/* Animated Background */}
+      <div className="animated-background"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center max-w-3xl mx-auto">
             <Image
