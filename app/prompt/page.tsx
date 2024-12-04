@@ -1,36 +1,36 @@
 "use client";
 
+
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMicrophone, faClipboard } from "@fortawesome/free-solid-svg-icons";
-import { useState, useEffect, useRef } from "react";
+import { faMicrophone, faClipboard, faArrowUp } from "@fortawesome/free-solid-svg-icons";
 
-type SpeechRecognition =
-  | (typeof window)["SpeechRecognition"]
-  | (typeof window)["webkitSpeechRecognition"];
-
-const Prompt =  () => {
-  const [prompt, setPrompt] = useState<string>("");
-  const [response, setResponse] = useState<string>("");
-  const [isRecording, setIsRecording] = useState(false); // State to track recording status
-  const recognitionRef = useRef<SpeechRecognition | null>(null); // Keep the recognition object stable
+const Prompt = () => {
+  const [prompt, setPrompt] = useState<string>(""); // Store the user input
+  const [response, setResponse] = useState<string>(""); // Store the AI response
   const [loading, setLoading] = useState<boolean>(false);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
 
-  const handleGenerate = async (prompt: String) => {
+  const handleGenerate = async (prompt: string) => {
+    if (!prompt.trim()) {
+      alert("Please enter a valid prompt.");
+      return;
+    }
+
     try {
       setLoading(true);
+      setResponse(""); // Clear the previous response
 
-      // Fetch AI model capabilities
-      const { available, defaultTemperature, defaultTopK, maxTopK } =
-        await (window as any).ai.languageModel.capabilities();
+      const { available } = await (window as any).ai.languageModel.capabilities();
 
       if (available !== "no") {
-        // Create a session and prompt the model
         const session = await (window as any).ai.languageModel.create();
-        const result = await session.prompt(prompt);
-        console.log(result)
-        setResponse(result); // Update the response with the generated result
+        const stream = await session.promptStreaming(prompt);
+
+        for await (const chunk of stream) {
+          setResponse((prevResponse) => prevResponse + chunk); // Append each chunk to the response
+        }
       } else {
-        console.log("Language model is not available.")
         setResponse("Language model is not available.");
       }
     } catch (error) {
@@ -41,68 +41,8 @@ const Prompt =  () => {
     }
   };
 
-  useEffect(() => {
-    // Ensure the speech recognition is only initialized on the client
-    if (typeof window !== "undefined" && "webkitSpeechRecognition" in window) {
-      recognitionRef.current = new (window as any).webkitSpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = "en-US"; // Set language for recognition
-    } else {
-      console.warn("Speech recognition is not supported in this browser.");
-    }
-  }, []); // Only run once after the component is mounted
-
-  const handleMicClick = () => {
-    const recognition = recognitionRef.current;
-    if (!recognition) {
-      alert("Speech recognition is not supported in this browser.");
-      return;
-    }
-
-    if (isRecording) {
-      // Stop recording
-      recognition.stop();
-      setIsRecording(false);
-    } else {
-      // Start recording
-      recognition.start();
-      setIsRecording(true);
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const transcript = event.results[0][0].transcript;
-        setPrompt((prev) => prev + " " + transcript); // Append the recognized text to the prompt
-      };
-
-      recognition.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
-        alert("An error occurred during speech recognition.");
-        setIsRecording(false);
-      };
-
-      recognition.onend = () => {
-        setIsRecording(false); // Ensure the icon resets when recognition ends
-      };
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    //handleGenerate();
-    // try {
-    //   const res = await fetch("/api/generate", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({ prompt }),
-    //   });
-    //   const data = await res.json();
-    //   setResponse(data.result);
-    // } catch (error) {
-    //   console.error("Error generating response:", error);
-    //   setResponse("An error occurred. Please try again.");
-    // }
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -111,124 +51,186 @@ const Prompt =  () => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         minHeight: "100vh",
-        padding: "2rem",
-        backgroundColor: "#f5f5f5",
+        padding: "1rem 2rem",
+        backgroundColor: "#f9f9f9",
       }}
     >
-      <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>AI Prompt Generator</h1>
-      <div
+      <h1
         style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          gap: "2rem",
-          width: "100%",
-          maxWidth: "1000px",
+          fontSize: "2.5rem",
+          fontWeight: "700",
+          color: "#333",
+          marginBottom: "0.5rem",
         }}
       >
-        {/* Prompt Input Section */}
-        <form
+        AI Prompt Generator
+      </h1>
+      <p
+        style={{
+          fontSize: "1rem",
+          textAlign: "center",
+          color: "#555",
+          marginBottom: "1rem",
+          maxWidth: "600px",
+          lineHeight: "1.5",
+        }}
+      >
+        Use this tool to generate engaging blog posts, social media content, or creative writing pieces. Simply input your prompt, and let our AI craft the perfect text for your needs.
+      </p>
+
+      {/* Input Section */}
+      <form
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "#ffffff",
+          padding: "1.5rem",
+          border: "1px solid #ddd",
+          borderRadius: "10px",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+          width: "60vw",
+          //maxWidth: "600px",
+          marginBottom: "1rem",
+        }}
+      >
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Enter your prompt here..."
+          required
           style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            backgroundColor: "#ffffff",
+            width: "100%",
+            height: "150px",
             padding: "1rem",
+            marginBottom: "1rem",
+            fontSize: "1rem",
             border: "1px solid #ddd",
             borderRadius: "8px",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            resize: "none",
+            backgroundColor: "#fdfdfd",
+            color: "black"
           }}
-        >
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Enter your prompt here..."
-            required
+        />
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div
             style={{
-              width: "100%",
-              height: "150px",
-              padding: "1rem",
-              marginBottom: "1rem",
-              fontSize: "1rem",
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              resize: "none",
+              width: "40px",
+              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#e8f5e9",
+              borderRadius: "50%",
             }}
-          />
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
-            <div style={{width: "20px", height: "20px"}}>
+          >
             <FontAwesomeIcon
               icon={faMicrophone}
-              onClick={handleMicClick}
+              onClick={() => setIsRecording((prev) => !prev)}
               style={{
                 cursor: "pointer",
                 fontSize: "1.5rem",
-                color: isRecording ? "#ff0000" : "#4CAF50", // Red when recording, green otherwise
+                color: isRecording ? "#ff0000" : "#4CAF50",
               }}
               title={isRecording ? "Stop Recording" : "Start Recording"}
             />
-            </div>
-            
-            <button
-              disabled={loading}
-              onClick={() => handleGenerate(prompt)} 
-              style={{
-                padding: "0.75rem 1.5rem",
-                fontSize: "1rem",
-                color: "#fff",
-                backgroundColor: "#0070f3",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                transition: "background-color 0.3s",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.backgroundColor = "#005bb5")
-              }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.backgroundColor = "#0070f3")
-              }
-            >
-            {loading ? "Generating..." : "Generate Response"} 
-            </button>
           </div>
-        </form>
-
-        {/* Result Display Section */}
-        <div
-          style={{
-            flex: 1,
-            backgroundColor: "#ffffff",
-            padding: "1rem",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            minHeight: "200px",
-          }}
-        >
-          <h2 style={{ marginBottom: "0.5rem" }}>Generated Output:</h2>
-          <p style={{ margin: "0", whiteSpace: "pre-wrap" }}>{response}</p>
-          <div style={{width: "20px", height: "20px"}}>
-          <FontAwesomeIcon
-            icon={faClipboard}
-            onClick={() => {
-              navigator.clipboard.writeText(response);
-              alert("Copied to clipboard!");
-            }}
+          <button
+            disabled={loading}
+            onClick={() => handleGenerate(prompt)}
             style={{
+              padding: "0.75rem 1.5rem",
+              fontSize: "1rem",
+              fontWeight: "600",
+              color: "#fff",
+              backgroundColor: "#0070f3",
+              border: "none",
+              borderRadius: "8px",
               cursor: "pointer",
-              fontSize: "1.2rem",
-              color: "#0070f3",
+              transition: "background-color 0.3s",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
             }}
-            title="Copy to Clipboard"
-          />
-
-          </div>
-          
+          >
+            {loading ? "Generating..." : "Generate Response"}
+          </button>
         </div>
+      </form>
+
+      {/* Output Section */}
+<div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: "#ffffff",
+    padding: "1.5rem",
+    border: "1px solid #ddd",
+    borderRadius: "10px",
+    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+    width: "60vw", // Span the entire width of the viewport
+    position: "relative",
+    margin: "1rem 0", // Add spacing above and below the div
+  }}
+>
+  <h2 style={{ marginBottom: "0.5rem", color: "#333" }}>Generated Output:</h2>
+  <p style={{ margin: "0", whiteSpace: "pre-wrap", color: "#444" }}>{response}</p>
+
+  {/* Copy Icon Wrapper */}
+  <div
+    style={{
+      width: "40px",
+      height: "40px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "absolute",
+      top: "10px",
+      right: "10px",
+      backgroundColor: "#e3f2fd",
+      borderRadius: "50%",
+    }}
+  >
+    <FontAwesomeIcon
+      icon={faClipboard}
+      onClick={() => {
+        navigator.clipboard.writeText(response);
+        alert("Copied to clipboard!");
+      }}
+      style={{
+        cursor: "pointer",
+        fontSize: "1.2rem",
+        color: "#0070f3",
+      }}
+      title="Copy to Clipboard"
+    />
+  </div>
+</div>
+
+
+      {/* Go Back to Top Button */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          width: "50px",
+          height: "50px",
+          backgroundColor: "#0070f3",
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
+          cursor: "pointer",
+          transition: "background-color 0.3s",
+        }}
+        onClick={scrollToTop}
+      >
+        <FontAwesomeIcon
+          icon={faArrowUp}
+          style={{ fontSize: "1.5rem", color: "#fff" }}
+          title="Go Back to Top"
+        />
       </div>
     </div>
   );
