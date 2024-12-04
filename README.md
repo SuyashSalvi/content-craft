@@ -2,7 +2,8 @@
 
 ## **Introduction**
 ContentCraft is an AI-powered platform that revolutionizes content creation by leveraging cutting-edge AI models. It provides users with powerful tools to generate, rewrite, and craft content tailored to different platforms like LinkedIn, Instagram, blogs, and more. ContentCraft is designed to save time, boost creativity, and provide platform-specific customization.
-**[As part of the "Built-in AI Early Preview Program,"](https://docs.google.com/document/d/1VG8HIyz361zGduWgNG7R_R8Xkv0OOJ8b5C9QKeCjU0c/edit?pli=1&tab=t.0)** ContentCraft leverages advanced AI capabilities like the Prompt API for seamless and dynamic content generation.
+
+As part of the **["Built-in AI Early Preview Program,"](https://docs.google.com/document/d/1VG8HIyz361zGduWgNG7R_R8Xkv0OOJ8b5C9QKeCjU0c/edit?pli=1&tab=t.0)** ContentCraft leverages advanced AI capabilities like the Prompt API for seamless and dynamic content generation.
 ---
 
 ## **Features**
